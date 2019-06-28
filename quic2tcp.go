@@ -7,9 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"flag"
-	"github.com/davecgh/go-spew/spew"
-	//quic "github.com/lucas-clemente/quic-go"
-	//"bufio"
 	quicconn "github.com/marten-seemann/quic-conn"
 	"go.uber.org/zap"
 	"math/big"
@@ -28,7 +25,6 @@ func main() {
 	tcpAddr := flag.String("tcpAddr", "localhost:1935", "tapHost")
 	flag.Parse()
 
-	//listener, err := quic.ListenAddr(*quicAddr, generateTLS(), nil)
 	listener, err := quicconn.Listen("udp", *quicAddr, generateTLS())
 	if err != nil {
 		Logger.Errorf("quic listen failed: %v", err)
@@ -68,19 +64,13 @@ func handleQuicConn(qconn net.Conn, tcpAddr string) {
 	go func() {
 		defer wg.Done()
 		buf := make([]byte, 81920)
-		count := 0
 		for {
 			n, err := qconn.Read(buf)
 			if err != nil {
 				Logger.Errorf("quic conn read error: ", err)
 				return
 			}
-			count++
-			if count > 5 {
-				return
-			}
-			
-			spew.Dump(buf[:n])
+
 			_, err = tconn.Write(buf[:n])
 			if err != nil {
 				Logger.Errorf("tcp conn write error: ", err)
